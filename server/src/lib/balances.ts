@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { redis } from './redis';
 import { centsToAmount, toCents } from './money';
 import { simplifyDebts, Transfer } from './debtSimplification';
 
@@ -7,10 +8,13 @@ export interface GroupBalances {
   transfers: Transfer[];
 }
 
-/**
- * Positive net balance = the group owes this person; negative = they owe the group.
- */
-export async function computeGroupBalances(groupId: string): Promise<GroupBalances> {
+const CACHE_TTL_SECONDS = 60;
+
+function cacheKey(groupId: string) {
+  return `group:${groupId}:balances`;
+}
+
+async function computeGroupBalancesFromDb(groupId: string): Promise<GroupBalances> {
   const [expenses, settlements, members] = await Promise.all([
     prisma.expense.findMany({ where: { groupId }, include: { splits: true } }),
     prisma.settlement.findMany({ where: { groupId } }),
@@ -39,4 +43,26 @@ export async function computeGroupBalances(groupId: string): Promise<GroupBalanc
   }));
 
   return { netBalances, transfers: simplifyDebts(balanceCents) };
+}
+
+/**
+ * Positive net balance = the group owes this person; negative = they owe the group.
+ * Cached in Redis (cache-aside, 60s TTL) since this is recomputed from every expense
+ * and settlement in the group on every read; writes explicitly invalidate the entry.
+ */
+export async function computeGroupBalances(groupId: string): Promise<GroupBalances> {
+  const cached = await redis.get(cacheKey(groupId)).catch(() => null);
+  if (cached) {
+    return JSON.parse(cached) as GroupBalances;
+  }
+
+  const result = await computeGroupBalancesFromDb(groupId);
+
+  await redis.set(cacheKey(groupId), JSON.stringify(result), 'EX', CACHE_TTL_SECONDS).catch(() => undefined);
+
+  return result;
+}
+
+export async function invalidateGroupBalancesCache(groupId: string): Promise<void> {
+  await redis.del(cacheKey(groupId)).catch(() => undefined);
 }

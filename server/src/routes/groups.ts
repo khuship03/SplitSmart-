@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/requireAuth';
 import { computeEqualSplit, computeExactSplit, computePercentageSplit, SplitResult } from '../lib/splitting';
-import { computeGroupBalances } from '../lib/balances';
+import { computeGroupBalances, invalidateGroupBalancesCache } from '../lib/balances';
 
 export const groupsRouter = Router();
 
@@ -71,6 +71,7 @@ groupsRouter.post('/:id/members', requireGroupMember, async (req, res) => {
     data: { groupId: req.params.id, userId: user.id },
     include: { user: { select: memberSelect } },
   });
+  await invalidateGroupBalancesCache(req.params.id);
 
   res.status(201).json({ member });
 });
@@ -155,6 +156,7 @@ groupsRouter.post('/:id/expenses', requireGroupMember, async (req, res) => {
     },
     include: { splits: true, paidBy: { select: memberSelect } },
   });
+  await invalidateGroupBalancesCache(groupId);
 
   res.status(201).json({ expense });
 });
@@ -199,6 +201,7 @@ groupsRouter.post('/:id/settlements', requireGroupMember, async (req, res) => {
   const settlement = await prisma.settlement.create({
     data: { groupId, fromUserId, toUserId, amount: amount.toFixed(2) },
   });
+  await invalidateGroupBalancesCache(groupId);
 
   res.status(201).json({ settlement });
 });
