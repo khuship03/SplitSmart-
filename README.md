@@ -53,7 +53,7 @@ Being built incrementally, phase by phase:
 - [x] Phase 2 — Prisma schema + JWT auth
 - [x] Phase 3 — groups, expenses, splitting, debt-simplification
 - [x] Phase 4 — React frontend
-- [ ] Phase 5 — Redis caching layer
+- [x] Phase 5 — Redis caching layer
 - [ ] Phase 6 — Plaid Sandbox integration
 - [ ] Phase 7 — OpenAI categorization + insights
 - [ ] Phase 8 — deploy to AWS EC2 free tier
