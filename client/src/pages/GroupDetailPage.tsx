@@ -5,6 +5,7 @@ import type { Expense, Group, GroupBalances } from '../lib/types';
 import { useAuth } from '../context/AuthContext';
 import { AddExpenseForm } from '../components/AddExpenseForm';
 import { BalancesPanel } from '../components/BalancesPanel';
+import { PlaidImportPanel } from '../components/PlaidImportPanel';
 
 export function GroupDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -103,6 +104,8 @@ export function GroupDetailPage() {
       )}
 
       <AddExpenseForm groupId={group.id} members={group.members} currentUserId={user.id} onCreated={loadAll} />
+
+      <PlaidImportPanel groupId={group.id} members={group.members} currentUserId={user.id} onImported={loadAll} />
 
       <div className="rounded-lg border border-slate-200 bg-white p-4">
         <h2 className="mb-3 text-lg font-medium text-slate-900">Expenses</h2>

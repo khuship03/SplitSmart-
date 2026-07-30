@@ -2,8 +2,9 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { requireAuth } from '../middleware/requireAuth';
-import { computeEqualSplit, computeExactSplit, computePercentageSplit, SplitResult } from '../lib/splitting';
 import { computeGroupBalances, invalidateGroupBalancesCache } from '../lib/balances';
+import { createExpenseSchema } from '../lib/expenseSchema';
+import { createExpenseInGroup, ExpenseValidationError } from '../lib/expenses';
 
 export const groupsRouter = Router();
 
@@ -76,89 +77,19 @@ groupsRouter.post('/:id/members', requireGroupMember, async (req, res) => {
   res.status(201).json({ member });
 });
 
-const baseExpenseFields = {
-  description: z.string().min(1),
-  amount: z.number().positive(),
-  category: z.string().optional(),
-  incurredAt: z.string().datetime().optional(),
-  paidById: z.string().uuid(),
-};
-
-const createExpenseSchema = z.discriminatedUnion('splitType', [
-  z.object({
-    ...baseExpenseFields,
-    splitType: z.literal('EQUAL'),
-    participantIds: z
-      .array(z.string().uuid())
-      .min(1)
-      .refine((ids) => new Set(ids).size === ids.length, 'Duplicate participant'),
-  }),
-  z.object({
-    ...baseExpenseFields,
-    splitType: z.literal('PERCENTAGE'),
-    participants: z
-      .array(z.object({ userId: z.string().uuid(), percentage: z.number().positive() }))
-      .min(1)
-      .refine((p) => new Set(p.map((x) => x.userId)).size === p.length, 'Duplicate participant'),
-  }),
-  z.object({
-    ...baseExpenseFields,
-    splitType: z.literal('EXACT'),
-    participants: z
-      .array(z.object({ userId: z.string().uuid(), amount: z.number().positive() }))
-      .min(1)
-      .refine((p) => new Set(p.map((x) => x.userId)).size === p.length, 'Duplicate participant'),
-  }),
-]);
-
 groupsRouter.post('/:id/expenses', requireGroupMember, async (req, res) => {
   const parsed = createExpenseSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const data = parsed.data;
-  const groupId = req.params.id;
 
-  const memberIds = new Set(
-    (await prisma.groupMember.findMany({ where: { groupId }, select: { userId: true } })).map((m) => m.userId)
-  );
-
-  if (!memberIds.has(data.paidById)) {
-    return res.status(400).json({ error: 'paidById must be a member of this group' });
-  }
-
-  const participantIds = data.splitType === 'EQUAL' ? data.participantIds : data.participants.map((p) => p.userId);
-  if (!participantIds.every((id) => memberIds.has(id))) {
-    return res.status(400).json({ error: 'All participants must be members of this group' });
-  }
-
-  let splits: SplitResult[];
   try {
-    if (data.splitType === 'EQUAL') {
-      splits = computeEqualSplit(data.amount, data.participantIds);
-    } else if (data.splitType === 'PERCENTAGE') {
-      splits = computePercentageSplit(data.amount, data.participants);
-    } else {
-      splits = computeExactSplit(data.amount, data.participants);
-    }
+    const expense = await createExpenseInGroup(req.params.id, parsed.data, 'MANUAL');
+    res.status(201).json({ expense });
   } catch (err) {
-    return res.status(400).json({ error: (err as Error).message });
+    if (err instanceof ExpenseValidationError) {
+      return res.status(400).json({ error: err.message });
+    }
+    throw err;
   }
-
-  const expense = await prisma.expense.create({
-    data: {
-      groupId,
-      description: data.description,
-      amount: data.amount.toFixed(2),
-      category: data.category,
-      splitType: data.splitType,
-      paidById: data.paidById,
-      incurredAt: data.incurredAt ? new Date(data.incurredAt) : undefined,
-      splits: { create: splits.map((s) => ({ userId: s.userId, amount: s.amount })) },
-    },
-    include: { splits: true, paidBy: { select: memberSelect } },
-  });
-  await invalidateGroupBalancesCache(groupId);
-
-  res.status(201).json({ expense });
 });
 
 groupsRouter.get('/:id/expenses', requireGroupMember, async (req, res) => {

@@ -19,6 +19,7 @@
     "express": "^4.21.0",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
+    "plaid": "^45.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

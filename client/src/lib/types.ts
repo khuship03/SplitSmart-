@@ -68,3 +68,11 @@ export interface GroupBalances {
   netBalances: NetBalance[];
   transfers: Transfer[];
 }
+
+export interface PlaidTransaction {
+  plaidTransactionId: string;
+  name: string;
+  amount: number;
+  date: string;
+  category: string | null;
+}
