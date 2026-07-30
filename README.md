@@ -55,5 +55,5 @@ Being built incrementally, phase by phase:
 - [x] Phase 4 — React frontend
 - [x] Phase 5 — Redis caching layer
 - [x] Phase 6 — Plaid Sandbox integration
-- [ ] Phase 7 — OpenAI categorization + insights
+- [x] Phase 7 — OpenAI categorization + insights
 - [ ] Phase 8 — deploy to AWS EC2 free tier
