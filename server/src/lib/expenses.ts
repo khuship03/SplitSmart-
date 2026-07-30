@@ -1,6 +1,7 @@
 import { prisma } from './prisma';
 import { computeEqualSplit, computeExactSplit, computePercentageSplit, SplitResult } from './splitting';
 import { invalidateGroupBalancesCache } from './balances';
+import { categorizeExpense } from './openai';
 import type { CreateExpenseInput } from './expenseSchema';
 
 export class ExpenseValidationError extends Error {}
@@ -34,12 +35,14 @@ export async function createExpenseInGroup(
     splits = computeExactSplit(data.amount, data.participants);
   }
 
+  const category = data.category ?? (await categorizeExpense(data.description));
+
   const expense = await prisma.expense.create({
     data: {
       groupId,
       description: data.description,
       amount: data.amount.toFixed(2),
-      category: data.category,
+      category,
       splitType: data.splitType,
       source,
       paidById: data.paidById,

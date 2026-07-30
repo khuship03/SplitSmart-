@@ -69,6 +69,13 @@ export interface GroupBalances {
   transfers: Transfer[];
 }
 
+export interface GroupSpendingInsights {
+  month: string;
+  total: string;
+  byCategory: { category: string; amount: string }[];
+  summary: string;
+}
+
 export interface PlaidTransaction {
   plaidTransactionId: string;
   name: string;

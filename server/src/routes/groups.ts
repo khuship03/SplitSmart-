@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/requireAuth';
 import { computeGroupBalances, invalidateGroupBalancesCache } from '../lib/balances';
 import { createExpenseSchema } from '../lib/expenseSchema';
 import { createExpenseInGroup, ExpenseValidationError } from '../lib/expenses';
+import { getGroupSpendingInsights } from '../lib/insights';
 
 export const groupsRouter = Router();
 
@@ -135,4 +136,10 @@ groupsRouter.post('/:id/settlements', requireGroupMember, async (req, res) => {
   await invalidateGroupBalancesCache(groupId);
 
   res.status(201).json({ settlement });
+});
+
+groupsRouter.get('/:id/insights', requireGroupMember, async (req, res) => {
+  const month = typeof req.query.month === 'string' ? req.query.month : undefined;
+  const insights = await getGroupSpendingInsights(req.params.id, month);
+  res.json(insights);
 });
