@@ -50,9 +50,9 @@ npm run dev               # http://localhost:5173
 Being built incrementally, phase by phase:
 
 - [x] Phase 1 — repo scaffold, Docker Compose, env config
-- [ ] Phase 2 — Prisma schema + JWT auth
-- [ ] Phase 3 — groups, expenses, splitting, debt-simplification
-- [ ] Phase 4 — React frontend
+- [x] Phase 2 — Prisma schema + JWT auth
+- [x] Phase 3 — groups, expenses, splitting, debt-simplification
+- [x] Phase 4 — React frontend
 - [ ] Phase 5 — Redis caching layer
 - [ ] Phase 6 — Plaid Sandbox integration
 - [ ] Phase 7 — OpenAI categorization + insights
