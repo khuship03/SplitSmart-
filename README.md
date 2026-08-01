@@ -56,4 +56,16 @@ Being built incrementally, phase by phase:
 - [x] Phase 5 — Redis caching layer
 - [x] Phase 6 — Plaid Sandbox integration
 - [x] Phase 7 — OpenAI categorization + insights
+- [x] Phase 9 — multi-payer expenses, shares split, expense edit/delete,
+      group management (remove/leave/delete), settlement history,
+      dashboard, push notifications (Web Push/VAPID, free)
 - [ ] Phase 8 — deploy to AWS EC2 free tier
+
+## Still missing (known gaps)
+
+- User profile editing (change name/email/password)
+- Join a group via invite link/code (currently admin-added by email only)
+- Notes and receipt attachments on an expense
+- Search/filtering on expenses
+- Natural-language expense entry
+- Month-over-month spending trend charts (insights are single-month only)
