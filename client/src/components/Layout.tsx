@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { NotificationsToggle } from './NotificationsToggle';
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -14,11 +15,22 @@ export function Layout() {
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link to="/groups" className="text-lg font-semibold text-slate-900">
-            SplitSmart
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link to="/dashboard" className="text-lg font-semibold text-slate-900">
+              SplitSmart
+            </Link>
+            <nav className="flex gap-4 text-sm text-slate-600">
+              <Link to="/dashboard" className="hover:text-slate-900">
+                Dashboard
+              </Link>
+              <Link to="/groups" className="hover:text-slate-900">
+                Groups
+              </Link>
+            </nav>
+          </div>
           {user && (
             <div className="flex items-center gap-4 text-sm text-slate-600">
+              <NotificationsToggle />
               <span>{user.name}</span>
               <button
                 onClick={handleLogout}

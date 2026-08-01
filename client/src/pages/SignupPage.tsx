@@ -18,7 +18,7 @@ export function SignupPage() {
     setSubmitting(true);
     try {
       await signup(email, password, name);
-      navigate('/groups');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to sign up');
     } finally {

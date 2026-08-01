@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "openai": "^7.2.0",
     "plaid": "^45.0.0",
+    "web-push": "^3.6.7",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -29,6 +30,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.5.5",
+    "@types/web-push": "^3.6.4",
     "prisma": "^5.20.0",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2"

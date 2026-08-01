@@ -41,19 +41,50 @@ export function computePercentageSplit(
   return items.map((i) => ({ userId: i.userId, amount: centsToAmount(i.cents) }));
 }
 
-export function computeExactSplit(
+function computeSumValidatedSplit(
   totalAmount: number,
-  participants: { userId: string; amount: number }[]
+  participants: { userId: string; amount: number }[],
+  label: string
 ): SplitResult[] {
   const totalCents = toCents(totalAmount);
   const items = participants.map((p) => ({ userId: p.userId, cents: toCents(p.amount) }));
   const sumCents = items.reduce((sum, i) => sum + i.cents, 0);
 
   if (sumCents !== totalCents) {
-    throw new Error(
-      `Exact split amounts (${centsToAmount(sumCents)}) must add up to the total (${centsToAmount(totalCents)})`
-    );
+    throw new Error(`${label} (${centsToAmount(sumCents)}) must add up to the total (${centsToAmount(totalCents)})`);
   }
 
   return items.map((i) => ({ userId: i.userId, amount: centsToAmount(i.cents) }));
+}
+
+export function computeExactSplit(
+  totalAmount: number,
+  participants: { userId: string; amount: number }[]
+): SplitResult[] {
+  return computeSumValidatedSplit(totalAmount, participants, 'Exact amounts');
+}
+
+export function computeSharesSplit(
+  totalAmount: number,
+  participants: { userId: string; shares: number }[]
+): SplitResult[] {
+  const totalShares = participants.reduce((sum, p) => sum + p.shares, 0);
+  if (totalShares <= 0) {
+    throw new Error('Total shares must be greater than 0');
+  }
+
+  const totalCents = toCents(totalAmount);
+  const items = participants.map((p) => ({
+    userId: p.userId,
+    cents: Math.round((totalCents * p.shares) / totalShares),
+  }));
+  reconcileRounding(items, totalCents);
+  return items.map((i) => ({ userId: i.userId, amount: centsToAmount(i.cents) }));
+}
+
+export function validatePayments(
+  totalAmount: number,
+  payments: { userId: string; amount: number }[]
+): SplitResult[] {
+  return computeSumValidatedSplit(totalAmount, payments, 'Payment amounts');
 }

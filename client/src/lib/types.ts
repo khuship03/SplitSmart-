@@ -20,13 +20,21 @@ export interface Group {
   members: GroupMember[];
 }
 
-export type SplitType = 'EQUAL' | 'PERCENTAGE' | 'EXACT';
+export type SplitType = 'EQUAL' | 'PERCENTAGE' | 'EXACT' | 'SHARES';
 
 export interface ExpenseSplit {
   id: string;
   expenseId: string;
   userId: string;
   amount: string;
+}
+
+export interface ExpensePayment {
+  id: string;
+  expenseId: string;
+  userId: string;
+  amount: string;
+  user: User;
 }
 
 export interface Expense {
@@ -37,8 +45,7 @@ export interface Expense {
   category: string | null;
   splitType: SplitType;
   source: 'MANUAL' | 'PLAID';
-  paidById: string;
-  paidBy: User;
+  payments: ExpensePayment[];
   incurredAt: string;
   createdAt: string;
   splits: ExpenseSplit[];
@@ -51,6 +58,8 @@ export interface Settlement {
   toUserId: string;
   amount: string;
   settledAt: string;
+  fromUser: User;
+  toUser: User;
 }
 
 export interface NetBalance {
@@ -82,4 +91,39 @@ export interface PlaidTransaction {
   amount: number;
   date: string;
   category: string | null;
+}
+
+export interface DashboardGroupSummary {
+  id: string;
+  name: string;
+  memberCount: number;
+  yourBalance: string;
+}
+
+export interface DashboardRecentExpense {
+  id: string;
+  groupId: string;
+  groupName: string;
+  description: string;
+  amount: string;
+  category: string | null;
+  incurredAt: string;
+}
+
+export interface DashboardPendingSettlement {
+  groupId: string;
+  groupName: string;
+  fromUserId: string;
+  fromUserName: string;
+  toUserId: string;
+  toUserName: string;
+  amount: string;
+}
+
+export interface DashboardData {
+  totalOwedToYou: string;
+  totalYouOwe: string;
+  groups: DashboardGroupSummary[];
+  recentExpenses: DashboardRecentExpense[];
+  pendingSettlements: DashboardPendingSettlement[];
 }

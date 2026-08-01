@@ -61,7 +61,7 @@ export function PlaidImportPanel({ groupId, members, currentUserId, onImported }
         amount: tx.amount,
         category: tx.category ?? undefined,
         incurredAt: new Date(tx.date).toISOString(),
-        paidById: currentUserId,
+        payments: [{ userId: currentUserId, amount: tx.amount }],
         splitType: 'EQUAL',
         participantIds: members.map((m) => m.userId),
       });

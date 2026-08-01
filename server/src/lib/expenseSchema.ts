@@ -1,11 +1,16 @@
 import { z } from 'zod';
 
+const paymentsField = z
+  .array(z.object({ userId: z.string().uuid(), amount: z.number().positive() }))
+  .min(1)
+  .refine((p) => new Set(p.map((x) => x.userId)).size === p.length, 'Duplicate payer');
+
 const baseExpenseFields = {
   description: z.string().min(1),
   amount: z.number().positive(),
   category: z.string().optional(),
   incurredAt: z.string().datetime().optional(),
-  paidById: z.string().uuid(),
+  payments: paymentsField,
 };
 
 export const createExpenseSchema = z.discriminatedUnion('splitType', [
@@ -30,6 +35,14 @@ export const createExpenseSchema = z.discriminatedUnion('splitType', [
     splitType: z.literal('EXACT'),
     participants: z
       .array(z.object({ userId: z.string().uuid(), amount: z.number().positive() }))
+      .min(1)
+      .refine((p) => new Set(p.map((x) => x.userId)).size === p.length, 'Duplicate participant'),
+  }),
+  z.object({
+    ...baseExpenseFields,
+    splitType: z.literal('SHARES'),
+    participants: z
+      .array(z.object({ userId: z.string().uuid(), shares: z.number().positive() }))
       .min(1)
       .refine((p) => new Set(p.map((x) => x.userId)).size === p.length, 'Duplicate participant'),
   }),

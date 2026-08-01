@@ -4,6 +4,8 @@ import cors from 'cors';
 import { authRouter } from './routes/auth';
 import { groupsRouter } from './routes/groups';
 import { plaidRouter } from './routes/plaid';
+import { dashboardRouter } from './routes/dashboard';
+import { pushRouter } from './routes/push';
 
 const app = express();
 
@@ -17,6 +19,8 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/groups', groupsRouter);
 app.use('/api/plaid', plaidRouter);
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/push', pushRouter);
 
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 app.listen(port, () => {

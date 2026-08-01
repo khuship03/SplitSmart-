@@ -16,7 +16,7 @@ function cacheKey(groupId: string) {
 
 async function computeGroupBalancesFromDb(groupId: string): Promise<GroupBalances> {
   const [expenses, settlements, members] = await Promise.all([
-    prisma.expense.findMany({ where: { groupId }, include: { splits: true } }),
+    prisma.expense.findMany({ where: { groupId }, include: { splits: true, payments: true } }),
     prisma.settlement.findMany({ where: { groupId } }),
     prisma.groupMember.findMany({ where: { groupId }, select: { userId: true } }),
   ]);
@@ -25,7 +25,9 @@ async function computeGroupBalancesFromDb(groupId: string): Promise<GroupBalance
   for (const member of members) balanceCents[member.userId] = 0;
 
   for (const expense of expenses) {
-    balanceCents[expense.paidById] = (balanceCents[expense.paidById] ?? 0) + toCents(expense.amount.toString());
+    for (const payment of expense.payments) {
+      balanceCents[payment.userId] = (balanceCents[payment.userId] ?? 0) + toCents(payment.amount.toString());
+    }
     for (const split of expense.splits) {
       balanceCents[split.userId] = (balanceCents[split.userId] ?? 0) - toCents(split.amount.toString());
     }

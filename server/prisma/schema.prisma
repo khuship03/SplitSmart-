@@ -11,6 +11,7 @@ enum SplitType {
   EQUAL
   PERCENTAGE
   EXACT
+  SHARES
 }
 
 enum ExpenseSource {
@@ -25,12 +26,13 @@ model User {
   name         String
   createdAt    DateTime @default(now())
 
-  memberships    GroupMember[]
-  paidExpenses   Expense[]      @relation("PaidBy")
-  expenseSplits  ExpenseSplit[]
-  settlementsOut Settlement[]   @relation("SettlementFrom")
-  settlementsIn  Settlement[]   @relation("SettlementTo")
-  plaidItems     PlaidItem[]
+  memberships     GroupMember[]
+  expensePayments ExpensePayment[]
+  expenseSplits   ExpenseSplit[]
+  settlementsOut  Settlement[]     @relation("SettlementFrom")
+  settlementsIn   Settlement[]     @relation("SettlementTo")
+  plaidItems      PlaidItem[]
+  pushSubscriptions PushSubscription[]
 }
 
 model Group {
@@ -64,13 +66,25 @@ model Expense {
   category    String?
   splitType   SplitType     @default(EQUAL)
   source      ExpenseSource @default(MANUAL)
-  paidById    String
   incurredAt  DateTime      @default(now())
   createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  group  Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  paidBy User           @relation("PaidBy", fields: [paidById], references: [id])
-  splits ExpenseSplit[]
+  group    Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  payments ExpensePayment[]
+  splits   ExpenseSplit[]
+}
+
+model ExpensePayment {
+  id        String  @id @default(uuid())
+  expenseId String
+  userId    String
+  amount    Decimal @db.Decimal(12, 2)
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
 }
 
 model ExpenseSplit {
@@ -93,9 +107,9 @@ model Settlement {
   amount     Decimal  @db.Decimal(12, 2)
   settledAt  DateTime @default(now())
 
-  group      Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  fromUser   User  @relation("SettlementFrom", fields: [fromUserId], references: [id])
-  toUser     User  @relation("SettlementTo", fields: [toUserId], references: [id])
+  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  fromUser User  @relation("SettlementFrom", fields: [fromUserId], references: [id])
+  toUser   User  @relation("SettlementTo", fields: [toUserId], references: [id])
 }
 
 model PlaidItem {
@@ -105,6 +119,17 @@ model PlaidItem {
   accessToken     String
   institutionName String?
   createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
