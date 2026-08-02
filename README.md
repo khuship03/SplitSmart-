@@ -64,15 +64,3 @@ npm run dev              # http://localhost:5173
 
 Postgres runs on port `5433` (not the default `5432`) to avoid clashing with any local Postgres install you might already have.
 
-## What's not here (yet)
-
-- Editing your own profile (name/email/password) after signup
-- Joining a group via invite link — right now an admin adds you by email
-- Notes or receipt attachments on an expense
-- Searching or filtering expenses
-- "Paid $80 for dinner with John and Mike"-style natural language entry
-- Month-over-month spending trend charts — insights are single-month snapshots for now
-
-## A note on cost
-
-Everything here runs free: Plaid Sandbox is free forever, Postgres/Redis run in local Docker containers, and OpenAI usage at this scale (a handful of categorization calls per expense) costs fractions of a cent. No AWS, no hosting bill — it just runs on your machine.
